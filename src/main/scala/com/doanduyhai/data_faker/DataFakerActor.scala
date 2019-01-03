@@ -67,7 +67,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
           val companyName = faker.company.name.replaceAll("""\|""", "")
           val jobType = faker.company.profession
 
-          userBuilder.append(s"""$userId|$dateOfCreation|$fn|$ln|$age|$sex|$fn.$ln@$domainName|{'HOME':'$homePhone','WORK':'$workPhone'}|$street|$city|$state|$companyName|$jobType|$countryCode\n""")
+          userBuilder.append(s"""$userId|$dateOfCreation|$fn|$ln|$age|$sex|$fn.$ln@$domainName|$workPhone,$homePhone|$street|$city|$state|$companyName|$jobType|$countryCode\n""")
 
           if (step % 10000 == 0) {
             flushData(usersFile, userBuilder, "user")
