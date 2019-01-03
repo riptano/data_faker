@@ -35,7 +35,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
 
 
 //  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
-  val purchaseFile = new PrintWriter(new File(s"purchases_$actorId.csv"))
+  val purchaseFile = new PrintWriter(new File(s"${OutputDirectoryUtils.createOutputDirectory()}/purchases_$actorId.csv"))
 
   def receive: Receive = {
 
