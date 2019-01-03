@@ -18,8 +18,9 @@ object AkkaFakeDataGenerator  {
       val userCount = input(1).toInt
       val minTransactions = input(2).toInt
       val maxTransactions = input(3).toInt
+      val shouldMerge = input(4).toBoolean
 
-      log.info(s"Generating fake data with parallelism $parallelism, user count $userCount, min transactions $minTransactions and max transactions $maxTransactions")
+      log.info(s"Generating fake data with parallelism $parallelism, user count $userCount, min transactions $minTransactions and max transactions $maxTransactions and shouldMerge: $shouldMerge")
 
       val userCountPerActor = Math.floor(userCount/parallelism).toInt
 
@@ -29,7 +30,7 @@ object AkkaFakeDataGenerator  {
       val controller = system.actorOf(Props(new GeneratorControllerActor(system, parallelism)))
       (1 to parallelism).foreach(actorId => {
           val actor = system.actorOf(Props(new DataFakerActor(controller, actorId.toString)))
-          actor ! GenerateData(userCountPerActor, minTransactions, maxTransactions)
+          actor ! GenerateData(userCountPerActor, minTransactions, maxTransactions, shouldMerge)
       })
       }
   }
@@ -65,7 +66,7 @@ object AkkaFakeDataGenerator  {
   def checkArguments(input: Array[String]): Boolean = {
     Option(input) match {
       case Some(input) =>
-        if (input.size != 4) {
+        if (input.size != 5) {
           displayUsage
           false
         } else true
@@ -80,7 +81,7 @@ object AkkaFakeDataGenerator  {
     println(
       """ Usage:
       |
-      | java -jar fake-data-generator-<version>.jar <parallelism> <nb_of_users> <min_transactions> <max_transactions>
+      | java -jar fake-data-generator-<version>.jar <parallelism> <nb_of_users> <min_transactions> <max_transactions> <should_merge>
       """.stripMargin)
   }
 }

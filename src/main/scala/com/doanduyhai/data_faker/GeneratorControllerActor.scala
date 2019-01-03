@@ -7,22 +7,24 @@ import akka.actor.{Actor, ActorLogging, ActorSystem}
 
 import scala.io.Source
 
-case class Done(actorId: String)
+case class Done(actorId: String, shouldMerge: Boolean)
 
-class GeneratorControllerActor(val system:ActorSystem, val actorCount: Int) extends Actor with ActorLogging {
+class GeneratorControllerActor(val system: ActorSystem, val actorCount: Int) extends Actor with ActorLogging {
   private var actorCounter = actorCount
 
   override def receive: Receive = {
-    case Done(actorId) => maybeShutdown(actorId)
-    case unknown @ _ => log.error(s"GeneratorControllerActor receiving unknown message $unknown")
+    case Done(actorId, shouldMerge) => maybeShutdown(actorId, shouldMerge)
+    case unknown@_ => log.error(s"GeneratorControllerActor receiving unknown message $unknown")
   }
 
-  def maybeShutdown(actorId: String): Unit = {
+  def maybeShutdown(actorId: String, shouldMerge: Boolean): Unit = {
     actorCounter -= 1
     log.info(s"DataFakerActor $actorId has finished his job!")
-    if(actorCounter == 0) {
-      mergeFiles("users")
-      mergeFiles("purchases")
+    if (actorCounter == 0) {
+      if (shouldMerge) {
+        mergeFiles("users")
+        mergeFiles("purchases")
+      }
       println("------------- Terminating the Fake Data Generator System ----------------")
       system.terminate
     }
