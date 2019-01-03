@@ -34,7 +34,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
   val sex = List("Male", "Female", "Gay", "Lesbian", "Trans");
 
 
-  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
+//  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
   val purchaseFile = new PrintWriter(new File(s"purchases_$actorId.csv"))
 
   def receive: Receive = {
@@ -70,7 +70,8 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
           userBuilder.append(s"""$userId|$dateOfCreation|$fn|$ln|$age|$sex|$fn.$ln@$domainName|$workPhone,$homePhone|$street|$city|$state|$companyName|$jobType|$countryCode\n""")
 
           if (step % 10000 == 0) {
-            flushData(usersFile, userBuilder, "user")
+            //don't need to save users
+            //flushData(usersFile, userBuilder, "user")
             userBuilder = new StringBuilder()
           }
 
@@ -84,17 +85,17 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
             val total = price * quantity
             val item = faker.commerce.productName.replaceAll("""\|""", "")
             val payment = paymentMode(getRandomInt(0, 3))
-            transactionBuilder.append(s"""$userId|$date|$item|$price|$quantity|$total|$currency|$payment\n""")
+            transactionBuilder.append(s"""$userId|$date|$item|$price|$quantity|$total|$currency|$payment|$workPhone,$homePhone\n""")
           })
           flushData(purchaseFile, transactionBuilder, "transaction")
         })
-
-        flushData(usersFile, userBuilder, "user")
+        //don't need to save users
+        //flushData(usersFile, userBuilder, "user")
         purchaseFile.flush()
-        usersFile.flush()
+//        usersFile.flush()
       } finally {
         purchaseFile.close()
-        usersFile.close()
+//        usersFile.close()
         controller ! Done(actorId, shouldMerge)
       }
     }
