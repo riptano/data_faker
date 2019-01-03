@@ -30,7 +30,7 @@ class GeneratorControllerActor(val system:ActorSystem, val actorCount: Int) exte
 
   def mergeFiles(fileNamePrefix: String): Unit = {
     log.info(s"Merging all $fileNamePrefix files together")
-    val bw = new BufferedWriter(new FileWriter(s"$fileNamePrefix.txt"))
+    val bw = new BufferedWriter(new FileWriter(s"$fileNamePrefix.csv"))
     try {
       (1 to actorCount).foreach(index => {
 
