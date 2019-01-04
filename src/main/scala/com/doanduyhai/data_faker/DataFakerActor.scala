@@ -1,9 +1,10 @@
 package com.doanduyhai.data_faker
 
 import java.io._
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.concurrent.TimeUnit
-import java.util.{Locale, UUID}
+import java.util.{Date, Locale, UUID}
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.github.javafaker.Faker
@@ -30,17 +31,16 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
 
   val fakerList = locales.map(_._1).map(locale => new Faker(new Locale(locale)))
 
-  val paymentMode = List("Credit Card", "Cash", "Check", "Account Transfer");
-  val sex = List("Male", "Female", "Gay", "Lesbian", "Trans");
+  val paymentMode = List("Credit Card", "Cash", "Check", "Account Transfer")
+  val sex = List("Male", "Female", "Gay", "Lesbian", "Trans")
 
 
-//  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
+  //  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
   val purchaseFile = new PrintWriter(new File(s"${OutputDirectoryUtils.createOutputDirectory()}/purchases_$actorId.csv"))
 
   def receive: Receive = {
-
     case GenerateData(usersCount, minTransactions, maxTransactions, shouldMerge) => {
-      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+      val dateFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME
       var userBuilder = new StringBuilder()
 
       try {
@@ -49,7 +49,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
 
           val random = getRandomInt(0, 13)
           val faker = fakerList(random)
-          val dateOfCreation = dateFormatter.format(faker.date().past(3 * 365, TimeUnit.DAYS))
+          val dateOfCreation = dateFormatter.format(DateFormat.toZonedDateTime(faker.date().past(3 * 365, TimeUnit.DAYS)))
           val currency = locales(random)._2
           val countryCode = locales(random)._3
           val userId = UUID.randomUUID
@@ -79,7 +79,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
           val transactionBuilder = new StringBuilder()
 
           (1 to transactionCount).foreach(_ => {
-            val date = dateFormatter.format(faker.date().past(3 * 365, TimeUnit.DAYS))
+            val date = dateFormatter.format(DateFormat.toZonedDateTime(faker.date().past(3 * 365, TimeUnit.DAYS)))
             val price = faker.commerce.price.toDouble
             val quantity = getRandomInt(1, 10)
             val total = price * quantity
@@ -92,10 +92,10 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
         //don't need to save users
         //flushData(usersFile, userBuilder, "user")
         purchaseFile.flush()
-//        usersFile.flush()
+        //        usersFile.flush()
       } finally {
         purchaseFile.close()
-//        usersFile.close()
+        //        usersFile.close()
         controller ! Done(actorId, shouldMerge)
       }
     }
@@ -115,5 +115,12 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
       case e: Throwable => println(s"Exception ${e.getMessage} caught")
     }
 
+  }
+}
+
+object DateFormat{
+
+  def toZonedDateTime(date: Date):ZonedDateTime = {
+    ZonedDateTime.ofInstant(date.toInstant, ZoneId.of("UTC"))
   }
 }
