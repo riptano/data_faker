@@ -38,6 +38,10 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
   //  val usersFile = new PrintWriter(new File(s"users_$actorId.csv"))
   val purchaseFile = new PrintWriter(new File(s"${OutputDirectoryUtils.createOutputDirectory()}/purchases_$actorId.csv"))
 
+  private def formatList(workPhone: String, homePhone: String): String =
+//    s"""[\\"$workPhone\\", \\"$homePhone\\"]"""
+    s"""[\"$workPhone\", \"$homePhone\"]"""
+
   def receive: Receive = {
     case GenerateData(usersCount, minTransactions, maxTransactions, shouldMerge) => {
       val dateFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME
@@ -67,7 +71,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
           val companyName = faker.company.name.replaceAll("""\|""", "")
           val jobType = faker.company.profession
 
-          userBuilder.append(s"""$userId|$dateOfCreation|$fn|$ln|$age|$sex|$fn.$ln@$domainName|$workPhone,$homePhone|$street|$city|$state|$companyName|$jobType|$countryCode\n""")
+          userBuilder.append(s"""$userId|$dateOfCreation|$fn|$ln|$age|$sex|$fn.$ln@$domainName|${formatList(workPhone, homePhone)}|$street|$city|$state|$companyName|$jobType|$countryCode\n""")
 
           if (step % 10000 == 0) {
             //don't need to save users
@@ -85,7 +89,7 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
             val total = price * quantity
             val item = faker.commerce.productName.replaceAll("""\|""", "")
             val payment = paymentMode(getRandomInt(0, 3))
-            transactionBuilder.append(s"""$userId|$date|$item|$price|$quantity|$total|$currency|$payment|$workPhone,$homePhone\n""")
+            transactionBuilder.append(s"""$userId|$date|$item|$price|$quantity|$total|$currency|$payment|${formatList(workPhone, homePhone)}\n""")
           })
           flushData(purchaseFile, transactionBuilder, "transaction")
         })
@@ -118,9 +122,9 @@ class DataFakerActor(val controller: ActorRef, val actorId: String) extends Acto
   }
 }
 
-object DateFormat{
+object DateFormat {
 
-  def toZonedDateTime(date: Date):ZonedDateTime = {
+  def toZonedDateTime(date: Date): ZonedDateTime = {
     ZonedDateTime.ofInstant(date.toInstant, ZoneId.of("UTC"))
   }
 }
