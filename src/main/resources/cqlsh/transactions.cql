@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS test.transactions(user_id TEXT, date timestamp, item TEXT, price float, quantity int, total decimal, currency TEXT, payment TEXT, contact list<text>, PRIMARY KEY ((user_id), date));
